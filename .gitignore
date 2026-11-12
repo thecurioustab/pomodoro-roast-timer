@@ -1,0 +1,7 @@
+# Secrets
+.env
+
+# Local only
+node_modules/
+.claude/
+*.log

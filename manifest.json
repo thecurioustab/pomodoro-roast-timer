@@ -1,0 +1,13 @@
+{
+  "name": "Roast Timer",
+  "short_name": "Roast Timer",
+  "description": "A focus timer that roasts you every time you pick up your phone.",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF7EE",
+  "theme_color": "#FBF7EE",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

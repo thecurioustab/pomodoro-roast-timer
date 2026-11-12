@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#FBF7EE" />
+  <title>Roast Timer</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app">
+
+    <!-- ============ FOCUS ============ -->
+    <section class="view active" id="view-focus" aria-label="Focus">
+      <div class="topbar">
+        <span class="phase-chip" id="phase-chip"><i></i><span id="phase-label">Focus</span></span>
+        <button class="icon-btn" id="mute-btn" aria-label="Mute Gloop"></button>
+      </div>
+
+      <button class="task-chip" id="task-chip">
+        <span data-icon="pencil"></span><span id="task-text">What are you working on?</span>
+      </button>
+      <input id="task-input" class="task-input" type="text" maxlength="40" placeholder="e.g. DBMS assignment" hidden />
+
+      <div class="stage">
+        <div class="bubble-slot">
+          <div class="bubble" id="bubble"><p id="bubble-text"></p></div>
+        </div>
+        <div class="mascot" id="mascot"></div>
+      </div>
+
+      <div class="timer" id="timer">25:00</div>
+      <div class="dots" id="dots" aria-label="Session progress"></div>
+      <p class="status" id="status"></p>
+
+      <div class="controls">
+        <button class="ctrl" id="skip-btn" data-icon="skip" aria-label="Skip to next"></button>
+        <button class="play" id="play-btn" aria-label="Start"></button>
+        <button class="ctrl" id="reset-btn" data-icon="reset" aria-label="Reset timer"></button>
+      </div>
+    </section>
+
+    <!-- ============ PROGRESS ============ -->
+    <section class="view" id="view-progress" aria-label="Progress">
+      <h1 class="page-title">Progress</h1>
+
+      <div class="empty card" id="progress-empty" hidden>
+        <div class="empty-mascot" id="empty-mascot"></div>
+        <p>Nothing here yet. Go focus — I'll be watching.</p>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat"><strong id="st-focus">0m</strong><span>Focused</span></div>
+        <div class="stat"><strong id="st-sessions">0</strong><span>Sessions</span></div>
+        <div class="stat"><strong id="st-roasts">0</strong><span>Times roasted</span></div>
+        <div class="stat"><strong id="st-streak">0</strong><span>Day streak</span></div>
+      </div>
+
+      <h2 class="section-title">Activity Map</h2>
+      <div class="card">
+        <div class="heat" id="heat"></div>
+        <div class="legend">
+          <span>Less</span><i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i><span>More</span>
+        </div>
+      </div>
+
+      <h2 class="section-title">This Week</h2>
+      <div class="card">
+        <p class="week-sub" id="week-sub"></p>
+        <div class="bars" id="bars"></div>
+      </div>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section class="view" id="view-settings" aria-label="Settings">
+      <h1 class="page-title">Settings</h1>
+
+      <p class="group-label">Edit time</p>
+      <details class="row">
+        <summary><span class="ri" data-icon="target"></span><span class="rl">Focus</span><span class="rv" id="v-focus"></span><span class="chev" data-icon="chevron"></span></summary>
+        <div class="row-body"><input type="range" min="5" max="90" step="5" data-key="focus" aria-label="Focus minutes" /></div>
+      </details>
+      <details class="row">
+        <summary><span class="ri" data-icon="coffee"></span><span class="rl">Short Break</span><span class="rv" id="v-short"></span><span class="chev" data-icon="chevron"></span></summary>
+        <div class="row-body"><input type="range" min="1" max="30" step="1" data-key="short" aria-label="Short break minutes" /></div>
+      </details>
+      <details class="row">
+        <summary><span class="ri" data-icon="book"></span><span class="rl">Long Break</span><span class="rv" id="v-long"></span><span class="chev" data-icon="chevron"></span></summary>
+        <div class="row-body"><input type="range" min="5" max="45" step="5" data-key="long" aria-label="Long break minutes" /></div>
+      </details>
+      <details class="row">
+        <summary><span class="ri" data-icon="repeat"></span><span class="rl">Sessions</span><span class="rv" id="v-sessions"></span><span class="chev" data-icon="chevron"></span></summary>
+        <div class="row-body"><input type="range" min="1" max="8" step="1" data-key="sessions" aria-label="Sessions before long break" /></div>
+      </details>
+
+      <p class="group-label">Detection</p>
+      <div class="row block">
+        <div class="row-head"><span class="ri" data-icon="phone"></span><span class="rl">Lift sensitivity</span></div>
+        <div class="seg" id="seg-sensitivity">
+          <button data-v="low">Low</button><button data-v="medium">Medium</button><button data-v="high">High</button>
+        </div>
+      </div>
+
+      <p class="group-label">Gloop's voice</p>
+      <label class="row toggle-row"><span class="ri" data-icon="volume"></span><span class="rl">Speak roasts out loud</span><input type="checkbox" class="switch" id="t-voice" /></label>
+      <label class="row toggle-row"><span class="ri" data-icon="music"></span><span class="rl">Babble while chatting</span><input type="checkbox" class="switch" id="t-babble" /></label>
+      <button class="row toggle-row test-row" id="test-voice-btn">
+        <span class="ri" data-icon="play"></span>
+        <span class="rl">Hear Gloop<small id="voice-source">Plays a babble, then a roast</small></span>
+        <span class="chev" data-icon="chevron"></span>
+      </button>
+
+      <p class="group-label">General</p>
+      <label class="row toggle-row"><span class="ri" data-icon="vibrate"></span><span class="rl">Vibrate on pickup</span><input type="checkbox" class="switch" id="t-vibrate" /></label>
+      <label class="row toggle-row"><span class="ri" data-icon="moon"></span><span class="rl">Dark Mode</span><input type="checkbox" class="switch" id="t-dark" /></label>
+
+      <button class="text-btn danger" id="clear-btn">Clear history</button>
+    </section>
+  </main>
+
+  <!-- ============ TAB BAR ============ -->
+  <nav class="tabbar" aria-label="Main">
+    <button class="tab active" data-view="focus"><span data-icon="timer"></span>Focus</button>
+    <button class="tab" data-view="progress"><span data-icon="chart"></span>Progress</button>
+    <button class="tab" data-view="settings"><span data-icon="sliders"></span>Settings</button>
+  </nav>
+
+  <!-- ============ ROAST OVERLAY ============ -->
+  <div class="roast" id="roast" hidden role="alertdialog" aria-labelledby="roast-text">
+    <span class="roast-count" id="roast-count">Pickup #1</span>
+    <div class="bubble big"><p id="roast-text"></p></div>
+    <div class="mascot big" id="roast-mascot"></div>
+    <button class="btn-primary" id="roast-ok">Okay okay, putting it down</button>
+  </div>
+
+  <!-- ============ RESULT SHEET ============ -->
+  <div class="sheet-backdrop" id="result" hidden>
+    <div class="sheet" role="dialog" aria-labelledby="result-title">
+      <div class="sheet-handle"></div>
+      <div class="result-head">
+        <div class="grade" id="grade">A</div>
+        <div>
+          <h2 id="result-title">Session complete</h2>
+          <p class="muted" id="result-sub"></p>
+        </div>
+      </div>
+      <div class="result-talk">
+        <div class="mascot small" id="result-mascot"></div>
+        <div class="bubble left"><p id="result-verdict"></p></div>
+      </div>
+      <div class="result-stats">
+        <div><strong id="r-focus">0m</strong><span>Focused</span></div>
+        <div><strong id="r-pickups">0</strong><span>Pickups</span></div>
+        <div><strong id="r-score">0</strong><span>Score</span></div>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn-ghost" id="skip-break-btn">Skip break</button>
+        <button class="btn-primary" id="start-break-btn">Start break</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="gloop.js"></script>
+  <script src="roasts.js"></script>
+  <script src="voice.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

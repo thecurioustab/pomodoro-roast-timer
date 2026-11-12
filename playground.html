@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Gloop Playground</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { min-height: 100dvh; }
+    .pg { max-width: 520px; margin: 0 auto; padding: 20px 16px 40px; display: flex; flex-direction: column; gap: 14px; }
+    .pg h1 { margin: 0; font-size: 26px; font-weight: 600; }
+    .pg .hint { margin: 0; color: var(--muted); font-size: 14px; }
+    .stage-card { background: var(--surface); border: 1.5px solid var(--line); border-radius: 26px; padding: 16px 12px 8px; display: flex; flex-direction: column; align-items: center; }
+    .stage-card .bubble-slot { min-height: 80px; }
+    #gloop { width: min(82vw, 330px); touch-action: manipulation; }
+    .gloop-svg { width: 100%; height: auto; display: block; overflow: visible; user-select: none; -webkit-user-select: none; }
+    .label { font-size: 13px; color: var(--muted); margin: 6px 4px 0; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { padding: 9px 14px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); font-size: 15px; }
+    .chip.active { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 600; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .actions button { padding: 13px; border-radius: 16px; border: 1.5px solid var(--line); background: var(--surface); font-size: 15px; font-weight: 500; }
+    .actions button.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    .toggles { display: flex; flex-wrap: wrap; gap: 16px; }
+    .toggles label { display: flex; align-items: center; gap: 8px; font-size: 15px; cursor: pointer; }
+    .compare { display: flex; align-items: center; gap: 14px; }
+    .compare .old { width: 90px; flex-shrink: 0; }
+    .compare p { margin: 0; color: var(--muted); font-size: 14px; }
+    .meter { height: 6px; border-radius: 99px; background: var(--surface-2); overflow: hidden; width: 100%; margin-top: 8px; }
+    .meter i { display: block; height: 100%; width: 0; background: var(--green); transition: width 60ms linear; }
+  </style>
+</head>
+<body>
+  <div class="pg">
+    <div>
+      <h1>Gloop Playground</h1>
+      <p class="hint">Move your mouse or finger and Gloop's eyes follow it. Tap Gloop to poke it.</p>
+    </div>
+
+    <div class="stage-card">
+      <div class="bubble-slot"><div class="bubble" id="bubble"><p id="bubble-text">Hi! I'm the new, squishier Gloop.</p></div></div>
+      <div id="gloop"></div>
+      <div class="meter" title="Talk level"><i id="meter"></i></div>
+    </div>
+
+    <p class="label">Mood</p>
+    <div class="chips" id="moods"></div>
+
+    <p class="label">Try it</p>
+    <div class="actions">
+      <button class="primary" id="btn-voice">🎙️ Roast me (AI voice)</button>
+      <button id="btn-babble">💬 Babble</button>
+      <button id="btn-poke">👉 Poke</button>
+      <button id="btn-jiggle">🍮 Jiggle</button>
+    </div>
+
+    <p class="label">Options</p>
+    <div class="toggles">
+      <label><input type="checkbox" class="switch" id="t-boil" checked /> Hand-drawn wobble</label>
+      <label><input type="checkbox" class="switch" id="t-dark" /> Dark mode</label>
+    </div>
+
+  </div>
+
+  <script src="roasts.js"></script>
+  <script src="voice.js"></script>
+  <script src="gloop.js"></script>
+  <script>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const pick = (a) => a[Math.floor(Math.random() * a.length)];
+      const Voice = window.GloopVoice;
+      Voice.configure({ voice: true, babble: true });
+
+      const SAMPLE = {
+        idle: "Hi! I'm the new, squishier Gloop.",
+        watch: "I see that phone. I see everything.",
+        angry: "Put. The phone. Down.",
+        grin: "Look at you, focusing! Proud of you!",
+        sleepy: "Break time… zzz…",
+      };
+
+      let mood = "idle";
+      const gloop = new Gloop($("gloop"), {
+        onPoke: () => {
+          const line = pick(["Hey! That tickles!", "Hehe, stop it!", "Boop!", "Rude. I'm squishy, not a button."]);
+          show(line);
+          Voice.babble(line, "grin");
+        },
+      });
+      gloop.setTalkSource(() => Voice.talkLevel());
+
+      let typer;
+      function show(text) {
+        clearInterval(typer);
+        const el = $("bubble-text");
+        el.textContent = "";
+        let i = 0;
+        typer = setInterval(() => { el.textContent = text.slice(0, ++i); if (i >= text.length) clearInterval(typer); }, 22);
+        const b = $("bubble");
+        b.style.animation = "none"; void b.offsetWidth; b.style.animation = "";
+      }
+
+      // Mood chips
+      Gloop.moods.forEach((m) => {
+        const b = document.createElement("button");
+        b.className = "chip" + (m === mood ? " active" : "");
+        b.textContent = m;
+        b.addEventListener("click", () => {
+          mood = m;
+          document.querySelectorAll("#moods .chip").forEach((c) => c.classList.toggle("active", c === b));
+          gloop.setMood(m);
+          show(SAMPLE[m]);
+          Voice.babble(SAMPLE[m], m);
+        });
+        $("moods").appendChild(b);
+      });
+
+      $("btn-babble").addEventListener("click", () => {
+        show(SAMPLE[mood]);
+        Voice.babble(SAMPLE[mood], mood);
+      });
+
+      $("btn-voice").addEventListener("click", async () => {
+        Voice.prime();
+        const voiced = [...window.CORE_VOICE].filter(Voice.has);
+        const roasts = voiced.filter((t) => Object.values(ROASTS).some((lv) => [...lv.first, ...lv.repeat, ...lv.many].includes(t)));
+        const template = pick(roasts.length ? roasts : [...ROASTS.spicy.first]);
+        const text = template.replaceAll("{task}", "your work");
+        const m = pick(["idle", "angry"]);
+        mood = m;
+        document.querySelectorAll("#moods .chip").forEach((c) => c.classList.toggle("active", c.textContent === m));
+        gloop.setMood(m);
+        show(text);
+        Voice.line(template, text, m, { croakFirst: true });
+      });
+
+      $("btn-poke").addEventListener("click", () => gloop.poke());
+      $("btn-jiggle").addEventListener("click", () => gloop.jiggle(1.2));
+      $("t-boil").addEventListener("change", (e) => gloop.setBoil(e.target.checked));
+      $("t-dark").addEventListener("change", (e) => { document.documentElement.dataset.theme = e.target.checked ? "dark" : "light"; });
+
+      // Live talk meter
+      (function meter() { $("meter").style.width = `${Math.round(Voice.talkLevel() * 100)}%`; requestAnimationFrame(meter); })();
+    })();
+  </script>
+</body>
+</html>
